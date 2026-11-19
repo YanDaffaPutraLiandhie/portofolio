@@ -148,7 +148,7 @@ async function renderPdf(url, box) {
   const pdf = await pdfjsLib.getDocument({ url }).promise;
   box.innerHTML = "";
   const MAX = 20, n = Math.min(pdf.numPages, MAX);
-  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
   for (let i = 1; i <= n; i++) {
     const page = await pdf.getPage(i);
     const w = box.clientWidth || 760;
@@ -214,6 +214,11 @@ const factList = (pairs) =>
 
 async function renderDetail({ table, imgTable, fk, backHref, backLabel, notFound, side, files = false }) {
   const root = $("#detail");
+  if (files) { // start downloading the PDF/DOCX libraries now, in parallel with the database query
+    loadScript(PDFJS).catch(() => {});
+    document.head.appendChild(Object.assign(document.createElement("link"), { rel: "prefetch", as: "script", href: PDFJS_WORKER }));
+    document.head.appendChild(Object.assign(document.createElement("link"), { rel: "prefetch", as: "script", href: MAMMOTH }));
+  }
   const id = new URLSearchParams(location.search).get("id");
   if (!id) { root.innerHTML = `<p class="empty">${notFound}</p>`; return; }
   try {
